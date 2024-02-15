@@ -1,0 +1,68 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                            Genius Z Forex Software|
+//|                                          Developed by Forex Robot Easy Team|
+//|                                                www.forexroboteasy.com|
+//+------------------------------------------------------------------+
+#property copyright 'Forex Robot Easy Team'
+#property link      'www.forexroboteasy.com'
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Add initialization code here
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // Add deinitialization code here
+}
+
+//+------------------------------------------------------------------+
+//| Expert start function                                            |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Get values from ZIG ZAG indicator
+    double zigZagHigh = iCustom(NULL, 0, 'ZigZag', 0, 0);
+    double zigZagLow = iCustom(NULL, 0, 'ZigZag', 1, 0);
+    
+    // Filter data to determine opening position
+    if(zigZagHigh > zigZagLow)
+    {
+        // Open long position
+        OrderSend(Symbol(), OP_BUY, 0.01, Ask, 3, 0, 0, 'Genius Z');
+    }
+    else if(zigZagHigh < zigZagLow)
+    {
+        // Open short position
+        OrderSend(Symbol(), OP_SELL, 0.01, Bid, 3, 0, 0, 'Genius Z');
+    }
+    
+    // Close positions based on filtered data
+    for(int i = OrdersTotal() - 1; i >= 0; i--)
+    {
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+        {
+            if(OrderType() == OP_BUY && zigZagHigh < zigZagLow)
+            {
+                // Close long position
+                OrderClose(OrderTicket(), OrderLots(), Bid, 3, clrRed);
+            }
+            else if(OrderType() == OP_SELL && zigZagHigh > zigZagLow)
+            {
+                // Close short position
+                OrderClose(OrderTicket(), OrderLots(), Ask, 3, clrGreen);
+            }
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+
